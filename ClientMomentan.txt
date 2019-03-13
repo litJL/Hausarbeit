@@ -122,8 +122,30 @@ int main(void)
                         cout << endl << "Server sent code " << bufferCode << ". Can't fulfill request.";
                 }
         }else if(bufCom == "mdr"){
+
                 sendto(s, bufCom.c_str(), 3, 0, (sockaddr *)&si_other, slen); //Schicke Befehl
-        }else cout << "brand>>Command not recognized, try \"hlp\"";
+                sendto(s, OWN_IP.c_str(), 15, 0, (sockaddr *)&si_other, slen); //Schicke IP
+
+                bufferCode = bufCode;
+
+                if(bufferCode == "200"){
+                        cout << "Directory has been created";
+                }else{
+                        cout << endl << "Server sent code " << bufferCode << ". Can't fulfill request.";
+                }
+        }else if(bufCom == "mve"){
+
+                sendto(s, bufCom.c_str(), 3, 0, (sockaddr *)&si_other, slen); //Schicke Befehl
+                sendto(s, OWN_IP.c_str(), 15, 0, (sockaddr *)&si_other, slen); //Schicke IP
+
+                bufferCode = bufCode;
+
+                if(bufferCode == "200"){
+                        cout << "File has been moved";
+                }else{
+                        cout << endl << "Server sent code " << bufferCode << ". Can't fulfill request.";
+                }
+        } cout << "brand>>Command not recognized, try \"hlp\"";
 }while(true);
 
   close(s); //Socket schlieﬂen
