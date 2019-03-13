@@ -16,32 +16,115 @@ void printHelp();
 int main(void)
 {
   struct sockaddr_in si_other={0}; //Pre-deklarationen
+  struct sockaddr_in si_me={0};
   int s, slen=sizeof(si_other); //Socket und sockaddr_in L‰nge
-  char buf[BUFLEN]; //Zu verschickender Buffer
+  char buf[BUFLEN], bufCode[3]; //Zu verschickender Buffer
   bool validCom = false;
-  string buffer, bufCom; //Vom client beschriebener Buffer
-
+  string OWN_IP, buffer, bufCom, bufferCode; //Vom client beschriebener Buffer
+  string test;
   s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); //Socket erstellen
 
   si_other.sin_family = AF_INET; //Adressfamilie definieren
   si_other.sin_port = htons(PORT); //Port definieren
 
+  si_me.sin_family = AF_INET;
+  si_me.sin_port = htons(PORT);
+  si_me.sin_addr.s_addr = htonl(INADDR_ANY);
+
+  bind(s, (sockaddr*)&si_me, sizeof(si_me));
   inet_aton(SRV_IP, &si_other.sin_addr); //Adresse zu bin‰r konvertieren und speichern
+
   cout << "\"hlp\" for help" << endl;
+
+  cout << "Enter your IP address: ";
+  getline(cin, OWN_IP);
+  OWN_IP.resize(15);
+
+  system("clear");
+  test = system("ls");
   do{
-        cout << "brand>>";
-        getline(cin, buffer);
-        bufCom = buffer;
+        cout << endl << "brand>>" << test;
+        getline(cin, bufCom);
         bufCom.resize(3);
-        if(buffer == "cls")system("clear");
-        else if(buffer == "bye")break;
-        else if(buffer == "hlp")printHelp();
+
+        if(buffer == "cls")system("clear"); //Clear
+        else if(bufCom == "bye")break; //Beenden
+        else if(bufCom == "hlp")printHelp(); //Hilfe
         else if(bufCom == "get"){
-                //Hier kommt stuff rein
-        }else cout << "brand>>Command not recognized, try \"hlp\"" << endl;
-        buffer.resize(BUFLEN-1); //Buffer an definierte Grˆﬂe anpassen
-        sendto(s, buffer.c_str(), BUFLEN, 0, (sockaddr *)&si_other, slen); //Buffer senden
-  }while(true);
+
+                cout << endl << "Which file do you wish to get?: ";
+                getline(cin,buffer);
+                buffer.resize(BUFLEN-1); //L‰nge anpassen
+
+                sendto(s, bufCom.c_str(), 3, 0, (sockaddr *)&si_other, slen); //Schicke Befehl
+                sendto(s, buffer.c_str(), BUFLEN, 0, (sockaddr *)&si_other, slen); //Schicke Dateiname
+                sendto(s, OWN_IP.c_str(), 15, 0, (sockaddr *)&si_other, slen); //Schicke IP
+
+                recvfrom(s, bufCode, 3, 0, 0, 0); //Erhalte Code
+                bufferCode = bufCode;
+
+                if(bufferCode == "200"){ //Erfolgreich
+                        recvfrom(s, buf, 3, 0, 0, 0); //Erhalte Liste an Dateien
+                }else if(bufferCode == "404"){ //Existiert nicht
+                        cout << endl << "File does not exist";
+                }else{ //Sammelcode
+                        cout << endl << "Server sent code " << bufferCode << ". Can't fulfill request.";
+                }
+        }else if(bufCom == "wrt"){ //ERSTELLEN (im Moment noch keine Mˆglichkeit einen Namen zu geben)
+
+                cout << endl << "Write Message: ";
+                getline(cin, buffer);
+
+                sendto(s, bufCom.c_str(), 3, 0, (sockaddr *)&si_other, slen); //Schicke Befehl
+                sendto(s, buffer.c_str(), BUFLEN, 0, (sockaddr *)&si_other, slen); //Schicke Dateiname
+                sendto(s, OWN_IP.c_str(), 15, 0, (sockaddr *)&si_other, slen); //Schicke IP
+
+                recvfrom(s, bufCode, 3, 0, 0, 0); //Erhalte Code
+                bufferCode = bufCode;
+
+                if(bufferCode == "200"){
+                        cout << "File has been created";
+                }else{
+                        cout << "Something has prevented the creation of the file CODE:" << bufferCode;
+                }
+        }else if(bufCom == "dir"){ //NAMEN ALLER DATEIEN
+
+                sendto(s, bufCom.c_str(), 3, 0, (sockaddr *)&si_other, slen); //Schicke Befehl
+                sendto(s, OWN_IP.c_str(), 15, 0, (sockaddr *)&si_other, slen); //Schicke IP
+
+                recvfrom(s, bufCode, 3, 0, 0, 0); //Erhalte Code
+                bufferCode = bufCode;
+
+                if(bufferCode == "200"){ //Erfolgreich
+                        recvfrom(s, buf, BUFLEN, 0, 0, 0); //Erhalte Liste an Dateien
+                        buffer = buf;
+                        cout << endl << buffer;
+                }else{ //Sammelcode
+                        cout << endl << "Server sent code " << bufferCode << ". Can't fulfill request.";
+                }
+        }else if(bufCom == "del"){ //L÷SCHEN
+                cout << endl << "Which file do you wish to delete?: ";
+                getline(cin,buffer);
+                buffer.resize(BUFLEN-1);
+
+                sendto(s, bufCom.c_str(), 3, 0, (sockaddr *)&si_other, slen); //Schicke Befehl
+                sendto(s, buffer.c_str(), BUFLEN, 0, (sockaddr *)&si_other, slen); //Schicke Dateiname
+                sendto(s, OWN_IP.c_str(), 15, 0, (sockaddr *)&si_other, slen); //Schicke IP
+
+                recvfrom(s, bufCode, 3, 0, 0, 0); //Erhalte Code
+                bufferCode = bufCode;
+
+                if(bufferCode == "200"){ //Erfolgreich
+                        cout << endl << "File has been deleted";
+                }else if(bufferCode == "404"){ //Existiert nicht
+                        cout << endl << "File does not exist";
+                }else{ //Sammelcode
+                        cout << endl << "Server sent code " << bufferCode << ". Can't fulfill request.";
+                }
+        }else if(bufCom == "mdr"){
+                sendto(s, bufCom.c_str(), 3, 0, (sockaddr *)&si_other, slen); //Schicke Befehl
+        }else cout << "brand>>Command not recognized, try \"hlp\"";
+}while(true);
 
   close(s); //Socket schlieﬂen
   return 0;
@@ -51,11 +134,14 @@ void printHelp(){
   struct winsize w;
   ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
-  cout << "clear - Clears the screen" << endl;
-  cout << "bye   - Closes client" << endl;
-  cout << "help  - Prints out the current screen" << endl;
-
-  for(int i = 0; i < w.ws_col; i++){
+  cout << "clr - Clears the screen" << endl;
+  cout << "bye - Closes client" << endl;
+  cout << "hlp - Prints out the current screen" << endl;
+  cout << "get - Returns a specified files contents" << endl;
+  cout << "wrt - Create a new file and fill it with content" << endl;
+  cout << "dir - Return all filenames in current directory" << endl;
+  cout << "del - Delete a specified file" << endl;
+  for(int i = 0; i < w.ws_col; i++){ //Cooler Liniengenerator (sehr cool)
         cout << "-";
   }
   cout << endl;
