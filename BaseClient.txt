@@ -1,0 +1,39 @@
+#include <iostream>
+#include <arpa/inet.h> //Wahrscheinlich für Adressfamilie
+#include <stdio.h>
+#include <sys/socket.h> //Für die Sockets
+#include <unistd.h>
+
+#define BUFLEN 20 //Länge des zu *verschickenden* Buffers
+#define PORT 4400 //Port
+#define SRV_IP "127.0.0.1" //IP
+
+using namespace std;
+
+int main(void)
+{
+  struct sockaddr_in si_other={0}; //Pre-deklarationen
+  int s, slen=sizeof(si_other); //Socket und sockaddr_in Länge
+  char buf[BUFLEN]; //Zu verschickender Buffer
+  string buffer; //Vom client beschriebener Buffer
+
+  s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); //Socket erstellen
+
+  si_other.sin_family = AF_INET; //Adressfamilie definieren
+  si_other.sin_port = htons(PORT); //Port definieren
+
+  inet_aton(SRV_IP, &si_other.sin_addr); //Adresse zu binär konvertieren und spei$
+
+  do{
+        cout << "Enter Message: ";
+        getline(cin, buffer);
+        if(buffer == "bye")break; //Konstante Verbindung bis "bye" geschrieben wi$
+        buffer.resize(BUFLEN-1); //Buffer an definierte Größe anpassen
+        cout<<"sending buffer: "<<buffer<<endl;
+        sendto(s, buffer.c_str(), BUFLEN, 0, (sockaddr *)&si_other, slen); //Buff$
+
+}while(true);
+
+  close(s); //Socket schließen
+  return(0);
+}

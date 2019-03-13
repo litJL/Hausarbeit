@@ -1,0 +1,35 @@
+#include <iostream>
+#include <arpa/inet.h> //Wahrscheinlich für Adressfamilie
+#include <sys/socket.h> //Für die Sockets
+#include <unistd.h>
+
+#define BUFLEN 20 //Länge des Buffers
+#define PORT 4400 //Port
+
+using namespace std;
+
+int main(void)
+{
+  struct sockaddr_in si_me={0};
+  int s; //Socket
+  char buf[BUFLEN]; //Zu erhaltener Buffer
+  string buffer; //Erhaltener Buffer wird konvertiert und in diesem String gespei$
+
+  s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); //Socket erstellen
+
+  si_me.sin_family = AF_INET; //Addressfamilie definieren für Socket
+  si_me.sin_port = htons(PORT); //Port definieren für Socket
+  si_me.sin_addr.s_addr = htonl(INADDR_ANY); //Ich hab echt keine Ahnung was das $
+
+  bind(s, (sockaddr*)&si_me, sizeof(si_me)); //Dem Socket einen Namen geben [Serv$
+
+  while (true) //Konstant Netzwerk auslesen
+  {
+    recvfrom(s, buf, BUFLEN, 0, 0, 0); //Buffer erhalten falls einer kommt. Idk w$
+    buffer=buf; //Konvertiere C-String zu string don't ask how, it's magic
+    cout<<"received buffer: "<<buffer<<endl;
+  }
+
+  close(s); //Socket schließen
+  return 0;
+}
