@@ -1,0 +1,62 @@
+#include <iostream>
+#include <arpa/inet.h> //Wahrscheinlich für Adressfamilie
+#include <stdio.h>
+#include <sys/socket.h> //Für die Sockets
+#include <unistd.h>
+#include <sys/ioctl.h> //Für größe der Konsole
+
+#define BUFLEN 20 //Länge des zu *verschickenden* Buffers
+#define PORT 4400 //Port
+#define SRV_IP "127.0.0.1" //IP
+
+using namespace std;
+
+void printHelp();
+
+int main(void)
+{
+  struct sockaddr_in si_other={0}; //Pre-deklarationen
+  int s, slen=sizeof(si_other); //Socket und sockaddr_in Länge
+  char buf[BUFLEN]; //Zu verschickender Buffer
+  bool validCom = false;
+  string buffer, bufCom; //Vom client beschriebener Buffer
+
+  s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); //Socket erstellen
+
+  si_other.sin_family = AF_INET; //Adressfamilie definieren
+  si_other.sin_port = htons(PORT); //Port definieren
+
+  inet_aton(SRV_IP, &si_other.sin_addr); //Adresse zu binär konvertieren und speichern
+  cout << "\"hlp\" for help" << endl;
+  do{
+        cout << "brand>>";
+        getline(cin, buffer);
+        bufCom = buffer;
+        bufCom.resize(3);
+        if(buffer == "cls")system("clear");
+        else if(buffer == "bye")break;
+        else if(buffer == "hlp")printHelp();
+        else if(bufCom == "get"){
+                //Hier kommt stuff rein
+        }else cout << "brand>>Command not recognized, try \"hlp\"" << endl;
+        buffer.resize(BUFLEN-1); //Buffer an definierte Größe anpassen
+        sendto(s, buffer.c_str(), BUFLEN, 0, (sockaddr *)&si_other, slen); //Buffer senden
+  }while(true);
+
+  close(s); //Socket schließen
+  return 0;
+}
+
+void printHelp(){
+  struct winsize w;
+  ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+
+  cout << "clear - Clears the screen" << endl;
+  cout << "bye   - Closes client" << endl;
+  cout << "help  - Prints out the current screen" << endl;
+
+  for(int i = 0; i < w.ws_col; i++){
+        cout << "-";
+  }
+  cout << endl;
+}
