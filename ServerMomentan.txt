@@ -43,6 +43,27 @@ int main(void)
         if(system(buffer.c_str()) == 0)bufferCode = "200";
         else bufferCode = "400";
         sendto(s, bufferCode.c_str(), buffer.length(), 0, (sockaddr *)&si_other, slen);
+    }else if(bufferCommand == "cdr"){ //Funktioniert noch nicht so ganz
+        bufferCode="200";
+        sendto(s, bufferCode.c_str(), bufferCode.length(), 0, (sockaddr *)&si_other, slen);
+        memset(buf, 0, sizeof(buf));
+        recvfrom(s, buf, BUFLEN, 0, (sockaddr *)&si_other, (socklen_t*)&slen);
+        buffer = buf;
+        buffer = "cd " + CURRENT_PATH + buffer;
+        if(system(buffer.c_str()) == 0)bufferCode = "200";
+        else bufferCode = "400";
+        sendto(s, bufferCode.c_str(), bufferCode.length(), 0, (sockaddr *)&si_other, slen);
+        //CURRENT_PATH = CURRENT_PATH + buffer + "/";
+    }else if(bufferCommand == "del"){
+        bufferCode="200";
+        sendto(s, bufferCode.c_str(), bufferCode.length(), 0, (sockaddr *)&si_other, slen);
+        memset(buf, 0, sizeof(buf));
+        recvfrom(s, buf, BUFLEN, 0, (sockaddr *)&si_other, (socklen_t*)&slen);
+        buffer = buf;
+        buffer = "rm " + CURRENT_PATH + buffer;
+        if(system(buffer.c_str()) == 0)bufferCode = "200";
+        else bufferCode = "400";
+        sendto(s, bufferCode.c_str(), bufferCode.length(), 0, (sockaddr *)&si_other, slen);
     }else{
         bufferCode="400";
         sendto(s, bufferCode.c_str(), bufferCode.length(), 0, (sockaddr *)&si_other, slen);

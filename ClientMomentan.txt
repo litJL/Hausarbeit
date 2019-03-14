@@ -51,7 +51,35 @@ int main(void)
                         else cout << "Unexpected error";
                 }else cout << "Connection Error";
         }else if(bufCom == "cdr"){
-
+                sendto(s, bufCom.c_str(), bufCom.length(), 0, (sockaddr *)&si_other, slen);
+                recv(s, bufCode, 3, 0);
+                bufferCode = bufCode;
+                if(bufferCode == "200"){
+                        cout << "Directory name: ";
+                        getline(cin,buffer);
+                        sendto(s, buffer.c_str(), buffer.length(), 0, (sockaddr *)&si_other, slen);
+                        memset(bufCode, 0, sizeof(buf));
+                        recv(s, bufCode, 3, 0);
+                        bufferCode = bufCode;
+                        if(bufferCode == "200")cout << "Successfully moved";
+                        else if (bufferCode == "400")cout << "Did not move";
+                        else cout << "Unexpected error";
+                }else cout << "Connection Error";
+        }else if(bufCom == "del"){
+                sendto(s, bufCom.c_str(), bufCom.length(), 0, (sockaddr *)&si_other, slen);
+                recv(s, bufCode, 3, 0);
+                bufferCode = bufCode;
+                if(bufferCode == "200"){
+                        cout << "File name: ";
+                        getline(cin,buffer);
+                        sendto(s, buffer.c_str(), buffer.length(), 0, (sockaddr *)&si_other, slen);
+                        memset(bufCode, 0, sizeof(buf));
+                        recv(s, bufCode, 3, 0);
+                        bufferCode = bufCode;
+                        if(bufferCode == "200")cout << "File deleted";
+                        else if (bufferCode == "404")cout << "File does not exist";
+                        else cout << "File could not be deleted due to an unknown error";
+                }else cout << "Connection Error";
         }else cout << "Not a Command, try \"hlp\"";
         cout << endl;
   }
@@ -60,5 +88,11 @@ int main(void)
 }
 
 void getHelp(){
-        cout << "just get help lol";
+        cout << endl;
+        cout << "hlp - shows this screen" << endl;
+        cout << "clr - clears screen" << endl;
+        cout << "bye - stops client" << endl;
+        cout << "mdr - create a directory" << endl;
+        cout << "cdr - move to a directory (so far doesn't work)" << endl;
+        cout << "del - delete a file" << endl;
 }
