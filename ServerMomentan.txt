@@ -13,9 +13,10 @@ using namespace std;
 int main(void)
 {
   struct sockaddr_in si_me={0};
-  int s; //Socket
-  char buf[BUFLEN]; //Zu erhaltener Buffer
-  string buffer; //Erhaltener Buffer wird konvertiert und in diesem String gespeichert
+  struct sockaddr_in si_other={0};
+  int s, slen=sizeof(si_other); //Socket
+  char buf[BUFLEN],bufCode[3],codeRec; //Zu erhaltener Buffer
+  string buffer,bufCom; //Erhaltener Buffer wird konvertiert und in diesem String gespeichert
 
   s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); //Socket erstellen
 
@@ -27,10 +28,16 @@ int main(void)
 
   while (true) //Konstant Netzwerk auslesen
   {
-        recvfrom(s, buf, BUFLEN, 0, 0, 0); //Buffer erhalten falls einer kommt. Idk was die drei letzten Nullen machen
-        buffer = buf; //Konvertiere C-String zu string don't ask how, it's magic
-        cout << buffer << endl;
-        if(buffer == "bye")break;
+        recvfrom(s, bufCode, 3, 0, (sockaddr *)&si_other, (socklen_t*)&slen); //Buffer erhalten falls einer kommt. Idk was die drei letzten Nullen machen
+        bufCom = bufCode;
+        if(bufCom == "get"){
+		codeRec = 'y';
+		sendto(s,codeRec,1,0,(sockaddr *)&si_other,slen);
+		recvfrom(s,buf,BUFLEN,0, (sockaddr *)&si_other, (socklen_t*)&slen)
+		buffer = buf;
+		buffer = "cat " + buffer;
+		system(buffer);
+	}
   }
 
   close(s); //Socket schließen

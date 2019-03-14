@@ -1,0 +1,38 @@
+#include <iostream>
+#include <arpa/inet.h>
+#include <stdio.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <string.h>
+
+#define BUFLEN 512
+#define PORT 9930
+#define SRV_IP "127.0.0.1"
+
+using namespace std;
+
+int main(void)
+{
+  struct sockaddr_in si_other={0};
+  int s, slen=sizeof(si_other);
+  char buf[BUFLEN];
+  string buffer;
+
+  s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+  si_other.sin_family = AF_INET;
+  si_other.sin_port = htons(PORT);
+
+  inet_aton(SRV_IP, &si_other.sin_addr);
+
+  cout << "Message: ";
+  getline(cin, buffer);
+  cout<<"sending buffer: "<<buffer<<endl;
+  sendto(s, buffer.c_str(), buffer.length(), 0, (sockaddr *)&si_other, slen);
+  memset(buf, 0, sizeof(buf)); // clear receive buffer
+  recv(s, buf, BUFLEN, 0);
+  cerr<<"received reply: "<<buf<<endl;
+
+  close(s);
+  return 0;
+}

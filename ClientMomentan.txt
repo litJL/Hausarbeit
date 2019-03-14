@@ -16,32 +16,19 @@ void printHelp();
 int main(void)
 {
   struct sockaddr_in si_other={0}; //Pre-deklarationen
-  struct sockaddr_in si_me={0};
   int s, slen=sizeof(si_other); //Socket und sockaddr_in Länge
-  char buf[BUFLEN], bufCode[3]; //Zu verschickender Buffer
-  bool validCom = false;
-  string OWN_IP, buffer, bufCom, bufferCode; //Vom client beschriebener Buffer
-  string test;
+  char buf[BUFLEN], bufCode[3], codeRec; //Zu verschickender Buffer
+  string buffer, bufCom, bufferCode; //Vom client beschriebener Buffer
   s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); //Socket erstellen
 
   si_other.sin_family = AF_INET; //Adressfamilie definieren
   si_other.sin_port = htons(PORT); //Port definieren
 
-  si_me.sin_family = AF_INET;
-  si_me.sin_port = htons(PORT);
-  si_me.sin_addr.s_addr = htonl(INADDR_ANY);
-
-  bind(s, (sockaddr*)&si_me, sizeof(si_me));
   inet_aton(SRV_IP, &si_other.sin_addr); //Adresse zu binär konvertieren und speichern
 
   cout << "\"hlp\" for help" << endl;
 
-  cout << "Enter your IP address: ";
-  getline(cin, OWN_IP);
-  OWN_IP.resize(15);
-
   system("clear");
-  test = system("ls");
   do{
         cout << endl << "brand>>" << test;
         getline(cin, bufCom);
@@ -57,19 +44,22 @@ int main(void)
                 buffer.resize(BUFLEN-1); //Länge anpassen
 
                 sendto(s, bufCom.c_str(), 3, 0, (sockaddr *)&si_other, slen); //Schicke Befehl
-                sendto(s, buffer.c_str(), BUFLEN, 0, (sockaddr *)&si_other, slen); //Schicke Dateiname
-                sendto(s, OWN_IP.c_str(), 15, 0, (sockaddr *)&si_other, slen); //Schicke IP
+		recv(s,codeRec,1,0);
+		if(codeRec == 'y'){
+	                sendto(s, buffer.c_str(), BUFLEN, 0, (sockaddr *)&si_other, slen); //Schicke Dateiname
+			
+        	        recv(s, bufCode, 3, 0); //Erhalte Code
+	                bufferCode = bufCode;
 
-                recvfrom(s, bufCode, 3, 0, 0, 0); //Erhalte Code
-                bufferCode = bufCode;
-
-                if(bufferCode == "200"){ //Erfolgreich
-                        recvfrom(s, buf, 3, 0, 0, 0); //Erhalte Liste an Dateien
-                }else if(bufferCode == "404"){ //Existiert nicht
-                        cout << endl << "File does not exist";
-                }else{ //Sammelcode
-                        cout << endl << "Server sent code " << bufferCode << ". Can't fulfill request.";
-                }
+                	if(bufferCode == "200"){ //Erfolgreich
+                        	sendto(s,'y',1,0,(sockaddr *)$si_other, slen);
+				recv(s, buf,BUFLEN,0);
+                	}else if(bufferCode == "404"){ //Existiert nicht
+                       		cout << endl << "File does not exist";
+                	}else{ //Sammelcode
+                        	cout << endl << "Server sent code " << bufferCode << ". Can't fulfill request.";
+                	}
+		}else cout << "Code not received";
         }else if(bufCom == "wrt"){ //ERSTELLEN (im Moment noch keine Möglichkeit einen Namen zu geben)
 
                 cout << endl << "Write Message: ";
