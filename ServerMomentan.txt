@@ -17,6 +17,7 @@ int main(void)
   int s, slen=sizeof(si_other);
   char buf[BUFLEN],bufCom[3];
   string buffer, bufferCode, bufferCommand;
+  string CURRENT_PATH = "repo/";
 
   s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
@@ -37,12 +38,13 @@ int main(void)
         sendto(s, bufferCode.c_str(), bufferCode.length(), 0, (sockaddr *)&si_other, slen);
         memset(buf, 0, sizeof(buf));
         recvfrom(s, buf, BUFLEN, 0, (sockaddr *)&si_other, (socklen_t*)&slen);
-        buffer.clear();
         buffer = buf;
-        cout << buffer;
-        sendto(s, buffer.c_str(), buffer.length(), 0, (sockaddr *)&si_other, slen);
+        buffer = "mkdir " + CURRENT_PATH + buffer;
+        if(system(buffer.c_str()) == 0)bufferCode = "200";
+        else bufferCode = "400";
+        sendto(s, bufferCode.c_str(), buffer.length(), 0, (sockaddr *)&si_other, slen);
     }else{
-        bufferCode="404";
+        bufferCode="400";
         sendto(s, bufferCode.c_str(), bufferCode.length(), 0, (sockaddr *)&si_other, slen);
     }
   }

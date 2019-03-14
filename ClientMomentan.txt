@@ -4,13 +4,15 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <string>
-#include <string.h>
+#include <string.h> //für memset()
 
 #define BUFLEN 512
 #define PORT 9930
 #define SRV_IP "127.0.0.1"
 
 using namespace std;
+
+void getHelp();
 
 int main(void)
 {
@@ -26,23 +28,37 @@ int main(void)
 
   inet_aton(SRV_IP, &si_other.sin_addr);
   while(true){
-        cout << endl << "brand>>";
+        cout << "brand>>";
         getline(cin, bufCom);
         bufCom.resize(3);
-        sendto(s, bufCom.c_str(), bufCom.length(), 0, (sockaddr *)&si_other, slen);
-        recv(s, bufCode, 3, 0);
-        bufferCode = bufCode;
-        cout << "Got Code: " << bufferCode << endl;
-        if(bufferCode == "200"){
-                cout << "Write a buffer: ";
-                getline(cin,buffer);
-                sendto(s, buffer.c_str(), buffer.length(), 0, (sockaddr *)&si_other, slen);
-                memset(buf, 0, sizeof(buf));
-                recv(s, buf, BUFLEN, 0);
-                res = buf;
-                cout << "Got Bzffer: " << res;
-        }
+        if(bufCom == "hlp")getHelp();
+        else if(bufCom == "clr")system("clear");
+        else if(bufCom == "bye")break;
+        else if(bufCom == "mdr"){
+                sendto(s, bufCom.c_str(), bufCom.length(), 0, (sockaddr *)&si_other, slen);
+                recv(s, bufCode, 3, 0);
+                bufferCode = bufCode;
+                if(bufferCode == "200"){
+                        cout << "Give directory a name: ";
+                        getline(cin,buffer);
+                        if(buffer.find("..") == 0)buffer.clear(); //falls zwei Punkte gefunden werden wird der buffer gelöscht
+                        sendto(s, buffer.c_str(), buffer.length(), 0, (sockaddr *)&si_other, slen);
+                        memset(bufCode, 0, sizeof(buf));
+                        recv(s, bufCode, 3, 0);
+                        bufferCode = bufCode;
+                        if(bufferCode == "200")cout << "Directory created";
+                        else if(bufferCode == "400")cout << "Directory could not be created";
+                        else cout << "Unexpected error";
+                }else cout << "Connection Error";
+        }else if(bufCom == "cdr"){
+
+        }else cout << "Not a Command, try \"hlp\"";
+        cout << endl;
   }
   close(s);
   return 0;
+}
+
+void getHelp(){
+        cout << "just get help lol";
 }
