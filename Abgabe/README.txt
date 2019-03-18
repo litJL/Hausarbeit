@@ -1,0 +1,1 @@
+Um Programm zu verwenden einfach compileSC ausführen
